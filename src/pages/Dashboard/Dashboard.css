@@ -1,0 +1,67 @@
+.btn-dash {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  margin-bottom: 5%;
+}
+.grid-content {
+  padding: 0; /* Başlangıç değeri */
+  transition: padding 0.2s ease-in-out; /* Geçiş süresi ve zamanlama fonksiyonu */
+}
+
+.grid-content:hover {
+  padding: 0.4%;
+}
+
+/* Toast bildirimi için stil */
+.custom-toast {
+  background-color: #f4f4f4;
+  color: #333;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.toast-confirmation p {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.toast-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-confirm {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm:hover {
+  background-color: #218838;
+}
+
+.btn-cancel {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333;
+}

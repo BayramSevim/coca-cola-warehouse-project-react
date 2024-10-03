@@ -1,0 +1,351 @@
+// material-ui
+import Typography from '@mui/material/Typography';
+
+// project-imports
+import MainCard from 'components/MainCard';
+import Grid from '@mui/material/Grid';
+import { useEffect, useState } from 'react';
+import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router';
+
+import { GetWarehouseUrl, GetMaterialUrl } from 'api/gama';
+
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import TextField from '@mui/material/TextField';
+import axios from 'axios';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// ==============================|| SAMPLE PAGE ||============================== //
+
+export default function MalKabul() {
+  const [scanner, setScanner] = useState(null);
+  const [scanResult, setScanResult] = useState('');
+  const [material, setMaterial] = useState(0);
+  const [rack, setRack] = useState([]);
+  const [materialBarcode, setMaterialBarcode] = useState('');
+  const [materialName, setMaterialName] = useState('');
+  const [materialCode, setMaterialCode] = useState('');
+  const [rackName, setRackName] = useState('');
+  const [rackCode, setRackCode] = useState('');
+  const [rackBarcode, setRackBarcode] = useState('');
+  const [irsaliyeNo, setIrsaliyeNo] = useState('');
+  const [adet, setAdet] = useState('');
+  const [coment, setComment] = useState('');
+
+  const handleMaterialCheck = (event) => {
+    setMaterialBarcode(event.target.value);
+  };
+
+  const handleRackCheck = (event) => {
+    setRackBarcode(event.target.value);
+  };
+
+  const getMaterialByBarcode = async () => {
+    await axios
+      .get(`${GetWarehouseUrl()}/api/Warehouse/GetMaterialByBarcode`, {
+        params: {
+          barcode: materialBarcode
+        }
+      })
+      .then((res) => {
+        setMaterial(res.data);
+        if (res.data !== null) {
+          setMaterialName(res.data.name);
+          setMaterialCode(res.data.code);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const getMaterial = () => {
+    getMaterialByBarcode();
+  };
+
+  const getRackByBarcode = async () => {
+    await axios
+      .get(`${GetWarehouseUrl()}/api/Warehouse/GetRackByBarcode`, {
+        params: {
+          barcode: rackBarcode
+        }
+      })
+      .then((res) => {
+        setRack(res.data);
+        if (res.data !== null) {
+          setRackName(res.data.cellBarcode);
+          setRackCode(res.data.rackName);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const getRack = () => {
+    getRackByBarcode();
+  };
+
+  const SaveMaterial = async () => {
+    try {
+      await axios
+        .post(
+          `${GetWarehouseUrl()}/api/Warehouse/PostInsertMalKabul`,
+          {
+            id: 0,
+            cellId: rack.cellId,
+            toCellId: 0,
+            materialId: material.id,
+            progressTypeId: 0,
+            actTypeId: 0,
+            docNo: irsaliyeNo,
+            quantity: adet,
+            createdDate: '2024-08-16T11:35:37.265Z',
+            isDeleted: false,
+            comment: coment,
+            comment1: '',
+            comment2: ''
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        .then((res) => {
+          if (res.data !== null) {
+            // alert('Kayıt Başarılı');
+            toast.success('Kayıt başarılı!');
+            console.log(res.data);
+          } else {
+            // console.log('Kayıt Hatalı');
+            toast.error('Kayıt hatalı!');
+          }
+        })
+        .catch((err) => {
+          // console.error('Hata:', err);
+          toast.error('Hata: ' + err.message);
+        });
+    } catch (error) {
+      toast.error('Hata: ' + error.message);
+    }
+  };
+
+  const initiateScanner = () => {
+    const scanner = new Html5QrcodeScanner('reader', {
+      fps: 5
+    });
+
+    scanner.render(success, error);
+    setScanner(scanner);
+
+    function success(result) {
+      setScanResult(result);
+      setMaterialBarcode(result);
+      scanner.clear();
+    }
+
+    function error(err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    if (scanResult) {
+      setScanner(null);
+    }
+    return () => {
+      if (scanner) {
+        scanner.clear();
+      }
+    };
+  }, [scanResult]);
+
+  const navigate = useNavigate();
+  return (
+    <>
+      <ToastContainer />
+      <Grid mb={1}>
+        <MainCard>
+          <Grid container rowSpacing={4.5} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <Grid container display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+                <Grid item sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
+                  <TextField
+                    id="filled-basic"
+                    sx={{ flexGrow: 1, marginRight: 2 }}
+                    value={materialBarcode}
+                    onChange={handleMaterialCheck}
+                    onClick={initiateScanner}
+                    InputProps={{ readOnly: true }}
+                    label="Malzeme Barkodu"
+                    variant="filled"
+                  />
+                  <Button variant="outlined" onClick={getMaterial}>
+                    Ürün Getir
+                  </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+        </MainCard>
+      </Grid>
+
+      {scanResult ? <div></div> : <div id="reader"></div>}
+
+      <MainCard>
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                value={materialName}
+                sx={{ width: '100%' }}
+                InputProps={{ readOnly: true }}
+                label="Malzeme Adı"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                value={materialCode}
+                sx={{ width: '100%' }}
+                InputProps={{ readOnly: true }}
+                label="Malzeme Kodu"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+          <Grid item sx={{ width: '100%' }}>
+            <Grid container display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+              <Grid item sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
+                <TextField
+                  id="filled-basic"
+                  sx={{ flexGrow: 1, marginRight: 2 }}
+                  value={rackBarcode}
+                  onChange={handleRackCheck}
+                  label="Raf Barkodu"
+                  variant="filled"
+                />
+                <Button variant="outlined" onClick={getRack}>
+                  Bul
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                sx={{ width: '100%' }}
+                value={rackName}
+                InputProps={{ readOnly: true }}
+                label="Raf Adı"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                sx={{ width: '100%' }}
+                value={rackCode}
+                InputProps={{ readOnly: true }}
+                label="Raf Kodu"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid sx={{ display: 'none' }}>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <DemoContainer sx={{ width: '100%' }} components={['DatePicker', 'DatePicker']}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker label="Tarih Seçiniz" />
+                </LocalizationProvider>
+              </DemoContainer>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                sx={{ width: '100%' }}
+                onChange={(e) => setIrsaliyeNo(e.target.value)}
+                label="Fatura / İrsaliye No"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField id="filled-basic" sx={{ width: '100%' }} onChange={(e) => setAdet(e.target.value)} label="Adet" variant="filled" />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <Grid container rowSpacing={4.5} marginBottom={1} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+            <Grid item sx={{ width: '100%' }}>
+              <TextField
+                id="filled-basic"
+                sx={{ width: '100%' }}
+                onChange={(e) => setComment(e.target.value)}
+                label="Açıklama"
+                variant="filled"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        <Grid container rowSpacing={4.5} display={'flex'} justifyContent={'center'} columnSpacing={2.75}>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                navigate('/dashboard');
+              }}
+            >
+              Geri
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="success" onClick={() => SaveMaterial()}>
+              Kaydet
+            </Button>
+          </Grid>
+        </Grid>
+      </MainCard>
+    </>
+  );
+}
