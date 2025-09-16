@@ -1,1 +1,1 @@
-# Coca Cola Depolama Projesi
+# Coca Cola Warehouse Management System
